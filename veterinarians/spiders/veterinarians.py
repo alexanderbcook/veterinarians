@@ -3,6 +3,7 @@ from scrapy import http, FormRequest
 from scrapy import Spider
 import csv
 
+
 def extract(selector, allowMiss=True, allowEmpty=True):
     '''Call extract() on the argument, strip out all whitespace, and return the first element that
     actually contains some data. Basically a replacement for x.extract()[0].strip() but a bit better
@@ -21,6 +22,9 @@ def extract(selector, allowMiss=True, allowEmpty=True):
 
 
 class StackSpider(Spider):
+
+    ## Specify name of spider, allowed domains, and the first url to pass to the parse function.
+
     name = 'veterinarians'
     allowed_domains = ['verify.sos.ga.gov']
     start_urls = [
@@ -28,6 +32,8 @@ class StackSpider(Spider):
     ]
 
     def parse(self, response):
+
+        ## This is a POST request. Speciify the form options and generate the request.
 
         formData = {
             't_web_lookup__license_type_name':'Veterinarian',
