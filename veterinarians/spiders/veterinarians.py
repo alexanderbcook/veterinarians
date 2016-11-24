@@ -50,8 +50,10 @@ class StackSpider(Spider):
             formData = {
                 '__EVENTTARGET': index
             }
-
-            request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.index_Page)
+            if extract(page.xpath('text()')) == '...':
+                request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.collect_Pages)
+            else:
+                request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.index_Page)
             requests.append(request)
 
         for request in requests:
