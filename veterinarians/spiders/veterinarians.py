@@ -125,5 +125,6 @@ class StackSpider(Spider):
         info['license_renenwed'] = license_renewed
 
         with open('data/veterinarians.csv', 'a') as f:
-            w = csv.DictWriter(f, info.keys(), delimiter=',', lineterminator='\n')
-            w.writerow(info)
+            if info['name']:
+                w = csv.DictWriter(f, info.keys(), delimiter=',', lineterminator='\n')
+                w.writerow(info)
