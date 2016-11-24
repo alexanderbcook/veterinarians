@@ -34,13 +34,26 @@ class StackSpider(Spider):
             'sch_button':'Search'
         }
 
-        request = scrapy.http.FormRequest.from_response(response, formdata=formData,  callback=self.index_Page)
+        request = scrapy.http.FormRequest.from_response(response, formdata=formData,  callback=self.collect_Pages)
 
         yield request
 
+    def collect_Pages(self, response):
+
+        pages =  response.xpath('//*[@id="datagrid_results"]/tr[42]/td/font/a')
+        for page in pages:
+            'grid_results$_ctl44$_ctl10'
+            'datagrid_results$_ctl44$_ctl10'
+            href = extract(page.xpath('@href'))
+            print href
+            index = href.lstrip("javascript:__doPostBack(\'").rstrip("', '')")
+            print index
+
+    '''
     def index_Page(self, response):
 
         rows = response.xpath('//*[@id="datagrid_results"]/tr')
+        requests = []
 
         for row in rows:
             status = extract(row.xpath('td[5]/span/text()'))
@@ -48,8 +61,10 @@ class StackSpider(Spider):
                 href = extract(row.xpath('td[1]/table/tr/td/a/@href'))
                 url = 'http://verify.sos.ga.gov/verification/' + href
                 request = scrapy.http.Request(url, callback=self.parse_Profile)
+                requests.append(request)
 
-                yield request
+        for request in requests:
+            yield request
 
     def parse_Profile(self, response):
 
@@ -105,4 +120,4 @@ class StackSpider(Spider):
         with open('veterinarians.csv', 'a') as f:
             w = csv.DictWriter(f, info.keys(), delimiter=',', lineterminator='\n')
             w.writerow(info)
-
+    '''
