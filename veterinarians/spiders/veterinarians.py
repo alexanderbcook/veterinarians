@@ -40,16 +40,23 @@ class StackSpider(Spider):
 
     def collect_Pages(self, response):
 
+        requests = []
+
         pages =  response.xpath('//*[@id="datagrid_results"]/tr[42]/td/font/a')
         for page in pages:
-            'grid_results$_ctl44$_ctl10'
-            'datagrid_results$_ctl44$_ctl10'
             href = extract(page.xpath('@href'))
-            print href
-            index = href.lstrip("javascript:__doPostBack(\'").rstrip("', '')")
-            print index
+            index = (href.lstrip("javascript:__doPostBack(").rstrip("', '')"))[1:]
 
-    '''
+            formData = {
+                '__EVENTTARGET': index
+            }
+
+            request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.index_Page)
+            requests.append(request)
+
+        for request in requests:
+            yield request
+
     def index_Page(self, response):
 
         rows = response.xpath('//*[@id="datagrid_results"]/tr')
@@ -117,7 +124,6 @@ class StackSpider(Spider):
         info['license_expires'] = license_expires
         info['license_renenwed'] = license_renewed
 
-        with open('veterinarians.csv', 'a') as f:
+        with open('data/veterinarians.csv', 'a') as f:
             w = csv.DictWriter(f, info.keys(), delimiter=',', lineterminator='\n')
             w.writerow(info)
-    '''
