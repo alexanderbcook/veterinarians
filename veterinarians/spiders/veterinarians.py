@@ -23,7 +23,7 @@ def extract(selector, allowMiss=True, allowEmpty=True):
 
 class StackSpider(Spider):
 
-    ## Specify name of spider, allowed domains, and the first url to pass to the parse function.
+    # Specify name of spider, allowed domains, and the first url to pass to the parse function.
 
     name = 'veterinarians'
     allowed_domains = ['verify.sos.ga.gov']
@@ -33,7 +33,7 @@ class StackSpider(Spider):
 
     def parse(self, response):
 
-        ## This is a POST request. Speciify the form options and generate the request.
+        # This is a POST request. Specify the form options and generate the request.
 
         formData = {
             't_web_lookup__license_type_name':'Veterinarian',
@@ -46,6 +46,12 @@ class StackSpider(Spider):
 
     def collect_Pages(self, response):
 
+        # Here, we collect all available pages from the index. If the 'page number' is equal to '...',
+        # we resend the same request back to this page. This will load the same page again, but a new series of pages
+        # ie the first series of pages are 1-40, the second is 41-80, etc. If the request is in one of these 'series'
+        # then, we collect pass the request to the index_page function.
+
+
         requests = []
 
         pages =  response.xpath('//*[@id="datagrid_results"]/tr[42]/td/font/a')
@@ -56,6 +62,7 @@ class StackSpider(Spider):
             formData = {
                 '__EVENTTARGET': index
             }
+
             if extract(page.xpath('text()')) == '...':
                 request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.collect_Pages)
             else:
@@ -66,6 +73,8 @@ class StackSpider(Spider):
             yield request
 
     def index_Page(self, response):
+
+        # Index page collects all the links to the veterinarian page. After collecting the links, make a request.
 
         rows = response.xpath('//*[@id="datagrid_results"]/tr')
         requests = []
@@ -82,6 +91,9 @@ class StackSpider(Spider):
             yield request
 
     def parse_Profile(self, response):
+
+        # This is pretty straightforward, collect all available data using the responses' xpath,
+        # shove data into a dictionary, then write the dictionary to a CSV.
 
         info = {}
 
