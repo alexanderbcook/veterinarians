@@ -1,13 +1,10 @@
 import scrapy
+from util import extract
 from scrapy import http, FormRequest
 from scrapy import Spider
 import csv
 
-def extract(selector):
-    text = [x.strip() for x in selector.extract()]
-    for t in text:
-        if t:
-            return t
+
 
 class StackSpider(Spider):
 
