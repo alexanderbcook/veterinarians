@@ -1,6 +1,6 @@
 import scrapy
 from util import extract
-from scrapy import http, FormRequest
+from scrapy import http
 from scrapy import Spider
 import csv
 
@@ -16,6 +16,7 @@ class StackSpider(Spider):
         'http://verify.sos.ga.gov/verification/'
     ]
 
+
     def parse(self, response):
 
         # This is a POST request. Specify the form options and generate the request.
@@ -25,7 +26,10 @@ class StackSpider(Spider):
             'sch_button':'Search'
         }
 
-        request = scrapy.http.FormRequest.from_response(response, formdata=formData,  callback=self.collect_Pages)
+        meta = {}
+        meta['first_page'] = None
+
+        request = scrapy.http.FormRequest.from_response(response, formdata=formData,  callback=self.collect_Pages, meta=meta)
 
         yield request
 
@@ -36,10 +40,11 @@ class StackSpider(Spider):
         # ie the first series of pages are 1-40, the second is 41-80, etc. If the request is in one of these 'series'
         # then, we collect pass the request to the index_page function.
 
-
         requests = []
+        counter = 1
 
-        pages =  response.xpath('//*[@id="datagrid_results"]/tr[42]/td/font/a')
+        pages = response.xpath('//*[@id="datagrid_results"]/tr[42]/td/font/a')
+
         for page in pages:
             href = extract(page.xpath('@href'))
             index = (href.lstrip("javascript:__doPostBack(").rstrip("', '')"))[1:]
@@ -48,11 +53,18 @@ class StackSpider(Spider):
                 '__EVENTTARGET': index
             }
 
-            if extract(page.xpath('text()')) == '...':
+            if counter == len(pages):
                 request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.collect_Pages)
+                counter = 1
+            elif counter == 1:
+                request = scrapy.http.FormRequest.from_response(response, callback=self.index_Page)
+                counter += 1
             else:
                 request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.index_Page)
+                counter += 1
+            print counter
             requests.append(request)
+
 
         for request in requests:
             yield request
@@ -127,7 +139,7 @@ class StackSpider(Spider):
         info['license_status'] = license_status
         info['license_issued'] = license_issued
         info['license_expires'] = license_expires
-        info['license_renenwed'] = license_renewed
+        info['license_renewed'] = license_renewed
 
         with open('data/veterinarians.csv', 'a') as f:
             if info['name']:
