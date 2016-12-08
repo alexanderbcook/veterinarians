@@ -53,16 +53,15 @@ class StackSpider(Spider):
                 '__EVENTTARGET': index
             }
 
+            # Here, if the link asks us to get a new set of pages, we call this function again. Otherwise, we send the request to the index_Page function.
+            # The logic is controlled by the 'counter'.
+
             if counter == len(pages):
                 request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.collect_Pages)
                 counter = 1
-            elif counter == 1:
-                request = scrapy.http.FormRequest.from_response(response, callback=self.index_Page)
-                counter += 1
             else:
                 request = scrapy.http.FormRequest.from_response(response, formdata=formData, callback=self.index_Page)
                 counter += 1
-            print counter
             requests.append(request)
 
 
